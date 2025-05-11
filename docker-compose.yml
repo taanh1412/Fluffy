@@ -1,0 +1,110 @@
+version: '3.8'
+
+services:
+  api:
+    build: .
+    volumes:
+      - app_data:/data
+    ports:
+      - "5000:5000"
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - REDIS_HOST=redis
+      - DB_PATH=/data
+    depends_on:
+      - rabbitmq
+      - redis
+    deploy:
+      replicas: 1
+    networks:
+      - app_network
+
+  node1:
+    build: .
+    command: ["python", "-m", "core.client", "--node", "Node_0"]
+    volumes:
+      - app_data:/data
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - REDIS_HOST=redis
+      - DB_PATH=/data
+    depends_on:
+      - rabbitmq
+      - redis
+    deploy:
+      replicas: 1
+    networks:
+      - app_network
+
+  node2:
+    build: .
+    command: ["python", "-m", "core.client", "--node", "Node_1"]
+    volumes:
+      - app_data:/data
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - REDIS_HOST=redis
+      - DB_PATH=/data
+    depends_on:
+      - rabbitmq
+      - redis
+    deploy:
+      replicas: 1
+    networks:
+      - app_network
+
+  node3:
+    build: .
+    command: ["python", "-m", "core.client", "--node", "Node_2"]
+    volumes:
+      - app_data:/data
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - REDIS_HOST=redis
+      - DB_PATH=/data
+    depends_on:
+      - rabbitmq
+      - redis
+    deploy:
+      replicas: 1
+    networks:
+      - app_network
+
+  frontend:
+    build: .
+    command: ["python", "frontend_server.py"]
+    volumes:
+      - ./app/frontend:/app
+    working_dir: /app
+    ports:
+      - "8000:8000"
+    networks:
+      - app_network
+
+  rabbitmq:
+    image: rabbitmq:3.12-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"  # Management UI
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - app_network
+
+  redis:
+    image: redis:7.2
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - app_network
+
+volumes:
+  app_data:
+  rabbitmq_data:
+  redis_data:
+
+networks:
+  app_network:
+    driver: bridge
