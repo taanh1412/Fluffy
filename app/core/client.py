@@ -1,18 +1,27 @@
 import asyncio
-from core.supernode import SuperNode
+from supernode import SuperNode
 
 class Client:
     def __init__(self):
         self.supernode = SuperNode()
 
-    async def upload_file(self, file_data: bytes, file_name: str) -> str:
-        return await self.supernode.distribute_and_replicate(file_data, file_name)
+    async def upload(self, file_data, file_name, user_id):
+        return await self.supernode.upload_file(file_data, file_name, user_id)
 
-    async def download_file(self, file_hash: str) -> bytes:
-        return await self.supernode.retrieve_file(file_hash)
+    async def download(self, file_hash, user_id):
+        return await self.supernode.download_file(file_hash, user_id)
 
-    async def search_files(self, query: str) -> list:
-        return await self.supernode.search_file(query)
+    async def search(self, query, user_id):
+        return await self.supernode.search_file(query, user_id)
+
+    async def list(self, user_id):
+        return await self.supernode.list_files(user_id)
+
+    async def delete(self, file_hash, user_id):
+        return await self.supernode.delete_file(file_hash, user_id)
+
+    async def update(self, file_hash, new_file_data, user_id):
+        return await self.supernode.update_file(file_hash, new_file_data, user_id)
 
 async def main():
     client = Client()

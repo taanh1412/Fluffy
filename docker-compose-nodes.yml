@@ -1,0 +1,14 @@
+services:
+  node:
+    build: ./app/core
+    command: python node_main.py
+    environment:
+      - RABBITMQ_HOST=${RABBITMQ_HOST}  # Replace with main cluster's RabbitMQ host (e.g., public IP)
+      - CORE_SERVICE_URL=${CORE_SERVICE_URL}  # Replace with main cluster's core service URL (e.g., http://<ip>:5001)
+      - NODE_AUTH_TOKEN=secure_node_token_123
+    networks:
+      - node_network
+
+networks:
+  node_network:
+    driver: bridge

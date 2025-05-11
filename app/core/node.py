@@ -1,25 +1,30 @@
+import pika
 import asyncio
-from typing import Dict, Optional
 
 class Node:
     def __init__(self, node_id: str):
         self.node_id = node_id
-        self.data: Dict[str, bytes] = {}
-        self.task_queue = asyncio.Queue()
-        self.is_alive = True
+        self.storage = {}
+        self.channel = None
 
-    async def store(self, file_hash: str, file_data: bytes) -> None:
-        if self.is_alive:
-            self.data[file_hash] = file_data
-            await self.task_queue.put(("store", file_hash, file_data))
+    def setup_rabbitmq(self, channel, is_replica: bool):
+        self.channel = channel
+        queue_name = f"node_{self.node_id}_{'replica' if is_replica else 'primary'}"
+        self.channel.queue_declare(queue=queue_name)
+        self.channel.basic_consume(queue=queue_name, on_message_callback=self.on_message, auto_ack=True)
 
-    async def retrieve(self, file_hash: str) -> Optional[bytes]:
-        return self.data.get(file_hash) if self.is_alive else None
+    def on_message(self, ch, method, properties, body):
+        print(f"Node {self.node_id} received message: {body}")
+        # Implement message handling logic here (e.g., store file, retrieve file)
 
-    async def steal_work(self, other_nodes: list) -> None:
-        if self.is_alive and self.task_queue.empty():
-            for node in other_nodes:
-                if not node.task_queue.empty():
-                    task = await node.task_queue.get()
-                    await self.task_queue.put(task)
-                    break
+    async def store(self, file_hash: str, file_data: bytes, user_id: str, file_name: str):
+        self.storage[file_hash] = (file_data, user_id, file_name)
+
+    async def retrieve(self, file_hash: str):
+        return self.storage.get(file_hash)
+
+    async def delete(self, file_hash: str):
+        if file_hash in self.storage:
+            del self.storage[file_hash]
+            return True
+        return False

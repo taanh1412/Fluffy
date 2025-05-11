@@ -1,26 +1,22 @@
+import pika
 import asyncio
-from core.node import Node
-from typing import List, Dict, Optional
+from node import Node
 
 class Leader:
-    def __init__(self, leader_id: str):
+    def __init__(self, leader_id: str, connection):
         self.leader_id = leader_id
-        self.nodes: List[Node] = []
-        self.term = 0
+        self.connection = connection
+        self.channel = connection.channel()
+        self.nodes: list[Node] = []
         self.is_leader = False
-        self.log: List[tuple] = []
-        self.commit_index = 0
 
     async def add_node(self, node: Node) -> None:
         self.nodes.append(node)
-        await node.task_queue.put(("join", node.node_id))
+        print(f"Node {node.node_id} added to leader {self.leader_id}")
 
-    async def replicate(self, file_hash: str, file_data: bytes) -> None:
-        if self.is_leader:
-            entry = (self.term, "replicate", file_hash, file_data)
-            self.log.append(entry)
-            tasks = [node.store(file_hash, file_data) for node in self.nodes]
-            await asyncio.gather(*tasks)
+    async def replicate(self, file_hash: str, file_data: bytes, user_id: str, file_name: str, action: str) -> None:
+        for node in self.nodes:
+            await node.store(file_hash, file_data, user_id, file_name) if action == "store" else await node.delete(file_hash)
 
     async def request_vote(self, candidate_id: str) -> bool:
         self.term += 1

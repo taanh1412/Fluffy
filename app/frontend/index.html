@@ -1,16 +1,21 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>File Storage App</title>
-  <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.development.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.development.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.23.0/babel.min.js"></script>
-  <link href="/styles.css" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Storage App</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div id="root">
-    <p>Loading... If this persists, check the console for errors.</p>
-  </div>
-  <script type="text/babel" src="/main.js"></script>
+    <div id="app"></div>
+    <p id="fallback">If you see this, the app failed to load. Check the console.</p>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="main.js"></script>
+    <script>
+        if (document.getElementById("app")) {
+            document.getElementById("fallback").style.display = "none";
+        }
+    </script>
 </body>
 </html>
